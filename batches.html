@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
+               script-src 'self' 'unsafe-inline' https://www.gstatic.com/firebasejs/ https://unpkg.com https://cdn.jsdelivr.net https://www.google.com/recaptcha/api.js https://*.google.com https://www.gstatic.com/recaptcha/;
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com;
+               font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+               img-src 'self' data: blob: https: http://via.placeholder.com https://firebasestorage.googleapis.com;
+               connect-src 'self' wss://*.firebaseio.com https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebasestorage.googleapis.com https://firebaseappcheck.googleapis.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self';
+               frame-src 'self' https://www.google.com/recaptcha/ https://*.google.com;">
+    <title>EduSparK - Explore Batches</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    
+  
+  <!-- Your code -->
+
+    <link rel="stylesheet" href="main-batch.css">
+</head>
+<body data-theme="dark">
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-logo-container"> <i class="fas fa-chalkboard-teacher loading-logo-icon"></i> <span class="loading-logo-text">EduSparK</span> </div>
+        <div class="loading-dots"> <span></span><span></span><span></span> </div>
+        <p class="loading-message" id="loadingMessage">Loading Courses...</p>
+    </div>
+
+    <header class="header">
+        <div class="logo-container"> <a href="#" class="logo" id="logoLink"> <i class="fas fa-chalkboard-teacher"></i> <span class="logo-text">EduSparK</span> </a> </div>
+        <div class="search-container" id="searchContainer"> <i class="fas fa-search search-icon"></i> <input type="text" class="search-input" id="searchInput" placeholder="Search batches..."> <div class="search-results" id="searchResults"></div> </div>
+        <div class="header-actions"> <button class="search-toggle-btn" id="searchToggleBtn" aria-label="Toggle Search"> <i class="fas fa-search"></i> </button> <div class="user-avatar" id="userAvatar"> <span id="avatarInitials">E✨</span> </div> </div>
+    </header>
+
+    <div id="allBatchesPage" class="page-content active">
+        <div class="container">
+            <h1 class="page-title" data-aos="fade-right">Explore Our Batches</h1>
+            <div class="batches-grid" id="allBatchesContainer">
+                <!-- Batch cards loaded here -->
+            </div>
+            <div class="empty-state" id="emptyStateAllBatches"> <i class="fas fa-search-minus"></i> <h3>No Batches Found</h3> <p>Check back later for new batches!</p> </div>
+        </div>
+    </div>
+
+    <div id="myBatchesPage" class="page-content">
+        <div class="container">
+            <h1 class="page-title">My Enrolled Batches</h1>
+            <div class="batches-grid" id="myBatchesContainer">
+                <!-- Enrolled batch cards loaded here -->
+            </div>
+            <div class="empty-state" id="emptyStateMyBatches"> <i class="fas fa-folder-open"></i> <h3>No Enrolled Batches</h3> <p>Explore our batches and enroll in courses that interest you!</p> </div>
+        </div>
+    </div>
+
+    <div id="supportPage" class="page-content">
+        <div class="support-page">
+            <div class="support-header">
+                <div>
+                    <h2>Support Chat</h2>
+                    <p class="support-header-meta">Chat with our support team.</p>
+                </div>
+                <button class="faq-btn" id="faqBtn"><i class="fas fa-question-circle"></i> View FAQs</button>
+            </div>
+            <div class="chat-area" id="chatArea">
+                 <div class="empty-state" id="emptyStateSupport" style="margin:auto;"> <i class="fas fa-comments"></i> <h3>Start a Conversation</h3> <p>Ask us anything! Type your message below or use a quick response.</p> </div>
+            </div>
+            <div class="support-input-area">
+                <div class="support-input-wrapper">
+                    <input type="text" id="supportInput" class="support-input" placeholder="Type your message...">
+                    <button class="send-support-btn" id="sendSupportBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="quick-responses-container" id="quickResponsesContainer">
+                    <!-- Quick response buttons loaded by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="profile-page" id="profilePage">
+        <button class="page-back-btn" id="profileBackBtn" aria-label="Go Back"> <i class="fas fa-arrow-left"></i> </button>
+        <div class="profile-page-content">
+            <div class="profile-main-header" data-aos="fade-down">
+                <div class="profile-avatar-lg" id="profileAvatarLarge"> <span id="profileAvatarInitialsLarge">U</span> </div>
+                <h1 id="profileNameLarge">User Loading...</h1>
+                <p id="profileUsernameLarge">@loading</p>
+                <div class="profile-meta-info">
+                    <span id="profileEmailLarge"><i class="fas fa-envelope"></i> loading...</span>
+                    <span id="profileJoinedLarge"><i class="fas fa-calendar-alt"></i> Joined: -</span>
+                    <span id="profilePointsLarge"><i class="fas fa-star"></i> Points: 0</span>
+                    <span id="profileLastActiveLarge"><i class="fas fa-history"></i> Last Seen: -</span>
+                </div>
+            </div>
+
+            <div class="profile-sections-grid">
+                <div class="profile-section-card" data-aos="fade-up" data-aos-delay="100">
+                    <h3><i class="fas fa-id-card"></i> Bio</h3>
+                    <p id="profileBioText">Loading bio...</p>
+                </div>
+                
+                <div class="profile-section-card" data-aos="fade-up" data-aos-delay="200">
+                    <h3><i class="fas fa-chart-bar"></i> Stats</h3>
+                    <div class="profile-stats-container">
+                        <div class="stat-item">
+                            <span class="value" id="profileBatchesEnrolledCount">0</span>
+                            <span class="label">Batches Enrolled</span>
+                        </div>
+                         <div class="stat-item"> <!-- Example additional stat -->
+                            <span class="value" id="profilePointsStat">0</span>
+                            <span class="label">Total Points</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-section-card" data-aos="fade-up" data-aos-delay="300">
+                <h3><i class="fas fa-graduation-cap"></i> My Enrolled Batches</h3>
+                <ul id="profileEnrolledBatchesList">
+                     <!-- Enrolled batches listed by JS in new card format -->
+                </ul>
+                <div class="empty-state" id="emptyStateProfileBatches" style="min-height:100px; padding:20px 0;"> <i class="far fa-list-alt"></i> <p>Your enrolled batches will appear here.</p> </div>
+            </div>
+
+            <div class="profile-actions-footer" data-aos="fade-up" data-aos-delay="400">
+                <button class="profile-action-btn edit-profile" id="editProfileBtn"><i class="fas fa-user-edit"></i> Edit Profile</button>
+                <button class="profile-action-btn logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notifications-page" id="notificationsPage">
+         <div class="notifications-header"> 
+            <button class="page-back-btn" id="notificationsBackBtn" aria-label="Go Back"> <i class="fas fa-arrow-left"></i> </button> 
+            <h2>Notifications</h2> 
+            <button class="mark-all-read-btn" id="markAllNotificationsReadBtn" style="display:none;">
+                <span class="spinner"></span>
+                <span class="icon-text"><i class="fas fa-check-double"></i> Mark All Read</span>
+            </button> 
+        </div>
+        <div class="notifications-list-container" id="notificationsListContainer"> 
+            <div class="empty-state" id="emptyStateNotifications"> <i class="fas fa-bell-slash"></i> <h3>No Notifications</h3> <p>Important updates will appear here.</p> </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" id="notificationsNavBtn" data-tooltip="Notifications"> <i class="fas fa-bell"></i> <span class="unread-badge" id="unreadNotificationsBadge" style="display: none;">0</span> </div>
+        <div class="nav-item active" id="allBatchesNavBtn" data-tooltip="All Batches"> <i class="fas fa-th-large"></i> </div>
+        <button class="action-nav-btn" id="supportNavBtn" data-tooltip="Support Chat" aria-label="Support Chat"> <i class="fas fa-headset"></i> </button>
+        <div class="nav-item" id="myBatchesNavBtn" data-tooltip="My Batches"> <i class="fas fa-bookmark"></i> </div>
+        <div class="nav-item" id="profileNavBtn" data-tooltip="Profile"> <i class="fas fa-user"></i> </div>
+    </nav>
+
+    <!-- Modals: Login, Signup, Edit Profile -->
+    <div class="modal" id="loginModal"> <div class="modal-content"><button class="close-modal" id="closeLoginModal" aria-label="Close">&times;</button> <h2 class="modal-title">Welcome Back!</h2><form id="loginForm"><div class="form-group"> <label for="loginEmail" class="form-label">Email</label> <input type="email" id="loginEmail" class="form-input" required autocomplete="email"> </div><div class="form-group"> <label for="loginPassword" class="form-label">Password</label> <input type="password" id="loginPassword" class="form-input" required autocomplete="current-password"> </div><button type="submit" class="submit-btn" id="loginBtn"><span class="spinner"></span><span>Login</span></button></form><div class="auth-separator"><span>OR</span></div><button class="submit-btn google-btn" id="googleLoginBtn"><span class="spinner"></span><span><i class="fab fa-google"></i> Continue with Google</span></button><div class="auth-switch"> Don't have an account? <a id="switchToSignup">Sign up</a> </div></div></div>
+    <div class="modal" id="signupModal"> <div class="modal-content"><button class="close-modal" id="closeSignupModal" aria-label="Close">&times;</button> <h2 class="modal-title">Join EduSparK</h2><form id="signupForm"><div class="form-group"> <label for="signupName" class="form-label">Full Name</label> <input type="text" id="signupName" class="form-input" required autocomplete="name"> </div><div class="form-group"> <label for="signupUsername" class="form-label">Username</label> <input type="text" id="signupUsername" class="form-input" required autocomplete="username"> <small style="font-size:0.75rem; color:var(--text-muted)">3-15 chars, lowercase, numbers, _, .</small></div><div class="form-group"> <label for="signupEmail" class="form-label">Email</label> <input type="email" id="signupEmail" class="form-input" required autocomplete="email"> </div><div class="form-group"> <label for="signupPassword" class="form-label">Password</label> <input type="password" id="signupPassword" class="form-input" required autocomplete="new-password"> </div><button type="submit" class="submit-btn" id="signupBtn"><span class="spinner"></span><span>Create Account</span></button></form><div class="auth-separator"><span>OR</span></div><button class="submit-btn google-btn" id="googleSignupBtn"><span class="spinner"></span><span><i class="fab fa-google"></i> Sign up with Google</span></button><div class="auth-switch"> Already have an account? <a id="switchToLogin">Login</a> </div></div></div>
+    <div class="modal" id="editProfileModal"> <div class="modal-content"><button class="close-modal" id="closeEditProfileModal" aria-label="Close">&times;</button> <h2 class="modal-title">Edit Profile</h2><form id="editProfileForm"><div class="profile-picture-upload-area"><img src="https://via.placeholder.com/100?text=Pic" alt="Profile Preview" id="profilePicturePreview" class="profile-picture-preview"><input type="file" id="profilePictureInput" accept="image/*"><label for="profilePictureInput" class="upload-picture-label"><i class="fas fa-camera"></i> Change Picture</label></div><div class="form-group"> <label for="editProfileName" class="form-label">Full Name</label> <input type="text" id="editProfileName" class="form-input" required> </div><div class="form-group"> <label for="editProfileUsername" class="form-label">Username</label> <input type="text" id="editProfileUsername" class="form-input" required><small style="font-size:0.75rem; color:var(--text-muted)">3-15 chars, lowercase, numbers, _, .</small></div><div class="form-group"> <label for="editProfileBio" class="form-label">Bio</label> <textarea id="editProfileBio" class="form-textarea" rows="3" placeholder="Tell us a bit about yourself..."></textarea> </div><button type="submit" class="submit-btn" id="saveProfileBtn"><span class="spinner"></span><span>Save Changes</span></button></form></div></div>
+    
+    <div class="modal" id="faqModal">
+        <div class="modal-content faq-modal-content">
+            <button class="close-modal" id="closeFaqModal" aria-label="Close">&times;</button>
+            <h2 class="modal-title">Frequently Asked Questions</h2>
+            <div id="faqListContainer">
+                <div class="empty-state" id="emptyStateFaq" style="display:none; min-height:100px;">
+                    <i class="fas fa-info-circle"></i> <p>FAQs will appear here. Currently unavailable.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+
+    <div id="toastContainer"></div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-check.js"></script>
+    <script src="main-batch-pro.js"></script>
+</body>
+</html>

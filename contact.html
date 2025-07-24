@@ -1,0 +1,1240 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
+               script-src 'self' 'unsafe-inline' https://www.gstatic.com/firebasejs/ https://unpkg.com https://cdn.jsdelivr.net https://www.google.com/recaptcha/api.js https://*.google.com https://www.gstatic.com/recaptcha/;
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com;
+               font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+               img-src 'self' data: blob: https: http://via.placeholder.com https://firebasestorage.googleapis.com;
+               connect-src 'self' wss://*.firebaseio.com https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebasestorage.googleapis.com https://firebaseappcheck.googleapis.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self';
+               frame-src 'self' https://www.google.com/recaptcha/ https://*.google.com;">
+    <title>EduSparK - Share Knowledge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-check.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #ff3333;
+            --primary-light: #ff6666;
+            --primary-dark: #cc0000;
+            --secondary-color: #000000;
+            --secondary-light: #2a2a2a;
+            --secondary-dark: #000000;
+            --text-light: #f1f2f6;
+            --text-dark: #dfe4ea;
+            --text-muted: #a4b0be;
+            --bg-light: #1e1e1e;
+            --bg-dark: #121212;
+            --card-bg: #212121;
+            --card-bg-dark: #1a1a1a;
+            --gradient: linear-gradient(135deg, #ff3333, #cc0000);
+            --gradient-light: linear-gradient(135deg, #ff6666, #ff3333);
+            --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.35);
+            --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.45);
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --header-height: 70px;
+            --nav-height: 70px;
+            --desktop-sidebar-width: 240px;
+            --desktop-sidebar-width-collapsed: 80px;
+            --max-width: 1200px;
+            --skeleton-bg: #303030;
+            --skeleton-highlight: #404040;
+            --notification-unread-dot: #3498db;
+            --notification-bg-success: rgba(39, 174, 96, 0.15);
+            --notification-border-success: #27ae60;
+            --notification-bg-error: rgba(231, 76, 60, 0.15);
+            --notification-border-error: #e74c3c;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: padding-left 0.3s ease;
+        }
+        body {
+            padding-top: var(--header-height);
+            padding-bottom: var(--nav-height);
+        }
+        .header {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        @media (min-width: 992px) {
+            body {
+                padding-left: var(--desktop-sidebar-width-collapsed);
+                padding-top: var(--header-height);
+                padding-bottom: 0;
+            }
+            body.sidebar-expanded {
+                padding-left: var(--desktop-sidebar-width);
+            }
+            .header {
+                padding-left: calc(var(--desktop-sidebar-width-collapsed) + 20px);
+                transition: padding-left 0.3s ease;
+            }
+            body.sidebar-expanded .header {
+                padding-left: calc(var(--desktop-sidebar-width) + 20px);
+            }
+            .bottom-nav { display: none; }
+            .desktop-sidebar { display: flex; }
+            .add-btn { display: none; }
+        }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.7s, visibility 0.7s; opacity: 1; visibility: visible; }
+        .loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loading-logo-container { display: flex; align-items: center; margin-bottom: 25px; animation: logoPulse 2s infinite ease-in-out; }
+        .loading-logo-icon { font-size: 3.5rem; color: var(--primary-color); margin-right: 15px; }
+        .loading-logo-text { font-size: 2.2rem; font-weight: 700; color: var(--primary-light); }
+        .loading-dots { display: flex; }
+        .loading-dots span { width: 12px; height: 12px; margin: 0 6px; background-color: var(--primary-color); border-radius: 50%; animation: loadingBounce 1.4s infinite ease-in-out both; }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes logoPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes loadingBounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        
+        .header { background-color: rgba(18, 18, 18, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); color: var(--text-light); height: var(--header-height); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; transition: all 0.3s ease; border-bottom: 1px solid rgba(255, 51, 51, 0.1); }
+        .logo-container { display: flex; align-items: center; }
+        .logo { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; text-decoration: none; }
+        .logo i { margin-right: 10px; }
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .search-container { position: relative; width: 250px; margin-left: auto; margin-right: 10px; }
+        .search-input { width: 100%; padding: 10px 15px 10px 40px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; background-color: rgba(255, 255, 255, 0.05); color: var(--text-light); transition: all 0.3s ease; }
+        .search-input:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-light); }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); opacity: 0.6; }
+        .search-results { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background-color: var(--card-bg); border-radius: var(--border-radius-sm); box-shadow: var(--shadow-xl); max-height: 350px; overflow-y: auto; z-index: 1001; display: none; animation: fadeInDown 0.3s ease forwards; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .search-result-item { padding: 12px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; transition: background-color 0.2s ease; }
+        .search-result-item:hover { background-color: rgba(255, 255, 255, 0.08); }
+        .search-toggle-btn { background: none; border: none; color: var(--text-light); font-size: 1.2rem; cursor: pointer; display: none; }
+        @media (max-width: 991px) { .search-container { position: absolute; top: calc(var(--header-height) + 10px); left: 10px; right: 10px; width: auto; z-index: 999; background-color: var(--bg-light); padding: 10px; border-radius: var(--border-radius-sm); box-shadow: var(--shadow-lg); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease; } .search-container.active { opacity: 1; visibility: visible; transform: translateY(0); } .search-toggle-btn { display: block; order: -1; } }
+        
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color); cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--gradient); color: white; font-weight: 600; }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        
+        /* Desktop Sidebar */
+        .desktop-sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--desktop-sidebar-width-collapsed); background-color: var(--card-bg-dark); border-right: 1px solid rgba(255,255,255,0.08); z-index: 1500; display: none; flex-direction: column; padding: 20px 0; transition: width 0.3s ease; }
+        body.sidebar-expanded .desktop-sidebar { width: var(--desktop-sidebar-width); }
+        .desktop-sidebar-logo { padding: 0 15px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; }
+        .desktop-sidebar-logo .logo-text { opacity: 0; width: 0; transition: opacity 0.2s 0.1s ease, width 0s 0.3s ease; }
+        body.sidebar-expanded .desktop-sidebar-logo .logo-text { opacity: 1; width: auto; transition: opacity 0.2s 0.1s ease, width 0s 0.1s ease; }
+        .desktop-nav-list { list-style: none; flex-grow: 1; }
+        .desktop-nav-item a, .desktop-profile-trigger { display: flex; align-items: center; color: var(--text-muted); text-decoration: none; padding: 15px; margin: 5px 10px; border-radius: var(--border-radius-sm); transition: all 0.3s ease; white-space: nowrap; overflow: hidden; cursor: pointer; }
+        .desktop-nav-item a:hover, .desktop-profile-trigger:hover, .desktop-nav-item.active a { background-color: var(--primary-color); color: white; box-shadow: 0 5px 15px rgba(255, 51, 51, 0.3); }
+        .desktop-nav-item .icon { font-size: 1.4rem; width: 50px; text-align: center; flex-shrink: 0; }
+        .desktop-nav-item .text { opacity: 0; transition: opacity 0.2s 0.1s ease; font-weight: 500; }
+        body.sidebar-expanded .desktop-nav-item .text { opacity: 1; }
+        .desktop-add-book-btn { background: var(--gradient); color: white; margin: 20px 10px; padding: 15px; border-radius: var(--border-radius-sm); text-align: center; font-weight: 600; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        body:not(.sidebar-expanded) .desktop-add-book-btn .text { display: none; }
+        .desktop-add-book-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 51, 51, 0.5); }
+        .desktop-sidebar-footer { margin-top: auto; }
+        .desktop-profile-trigger .user-avatar { width: 35px; height: 35px; font-size: 1rem; margin: 0 7.5px; }
+        .desktop-profile-info { opacity: 0; transition: opacity 0.2s 0.1s ease; margin-left: 10px; }
+        body.sidebar-expanded .desktop-profile-info { opacity: 1; }
+        #desktopUsername { font-weight: 600; color: var(--text-light); }
+        #desktopUserEmail { font-size: 0.75rem; color: var(--text-muted); }
+        .sidebar-toggle { position: absolute; top: var(--header-height); right: -15px; width: 30px; height: 30px; background-color: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-light); z-index: 10; transition: transform 0.3s ease; }
+        .sidebar-toggle:hover { background-color: var(--primary-color); color: white; }
+        body.sidebar-expanded .sidebar-toggle i { transform: rotate(180deg); }
+
+        .popular-books-section { padding: 30px 20px; }
+        .section-title { font-size: 1.8rem; margin-bottom: 25px; color: var(--primary-light); position: relative; display: inline-block; padding-bottom: 10px; text-align: center; width: 100%; }
+        .section-title::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 70px; height: 4px; background: var(--gradient); border-radius: 4px; }
+        .popular-books-carousel { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .popular-books-carousel::-webkit-scrollbar { display: none; }
+        .popular-book-card { flex: 0 0 auto; width: 160px; background-color: var(--card-bg); border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--shadow-md); transition: var(--transition); cursor: pointer; }
+        .popular-book-card:hover { transform: translateY(-8px) scale(1.03); box-shadow: var(--shadow-lg); }
+        .popular-book-img-container { height: 200px; overflow: hidden; }
+        .popular-book-img { width: 100%; height: 100%; object-fit: cover; }
+        .popular-book-info { padding: 12px; }
+        .popular-book-title { font-size: 0.9rem; font-weight: 600; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .popular-book-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+        .popular-book-meta i { color: var(--primary-color); }
+        
+        .container { padding: 20px; max-width: var(--max-width); margin: 0 auto; }
+        .page-title { font-size: 2rem; margin-bottom: 25px; color: var(--primary-color); }
+        .category-filter-container { margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .category-filter-item { padding: 8px 18px; border-radius: 20px; background-color: var(--card-bg); color: var(--text-muted); cursor: pointer; transition: all 0.3s ease; }
+        .category-filter-item.active, .category-filter-item:hover { background: var(--gradient); color: white; }
+        
+        .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        #booksGridLoadingIndicator { grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-muted); display: none; }
+        
+        .skeleton { background-color: var(--skeleton-bg); animation: pulse-bg 1.5s infinite ease-in-out; }
+        .skeleton-book-card { background-color: var(--card-bg); border-radius: var(--border-radius); overflow: hidden; }
+        .skeleton-img { height: 220px; }
+        .skeleton-info { padding: 15px; }
+        .skeleton-text { height: 1em; margin-bottom: 10px; border-radius: 4px;}
+        .skeleton-btn { height: 38px; border-radius: var(--border-radius-sm); margin-top: 15px; }
+        @keyframes pulse-bg { 0% { background-color: var(--skeleton-bg); } 50% { background-color: var(--skeleton-highlight); } 100% { background-color: var(--skeleton-bg); } }
+
+        .book-card { background-color: var(--card-bg); border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--shadow-md); transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); animation: cardFadeInUp 0.5s ease forwards; cursor: pointer; }
+        @keyframes cardFadeInUp { to { opacity: 1; transform: translateY(0); } }
+        .book-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: var(--shadow-lg); }
+        .book-img-container { height: 220px; overflow: hidden; background-color: rgba(255, 255, 255, 0.05); }
+        .book-img { width: 100%; height: 100%; object-fit: cover; }
+        .book-info { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+        .book-title { font-size: 1rem; font-weight: 600; margin-bottom: 8px; color: var(--text-dark); }
+        .book-meta { display: flex; justify-content: space-between; align-items: center; margin-top: auto; font-size: 0.8rem; color: var(--text-muted); }
+        .book-meta span { display: flex; align-items: center; gap: 5px; }
+        .book-meta i { color: var(--primary-color); }
+
+        .status-badge { position: absolute; top: 10px; right: 10px; padding: 4px 9px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; color: white; z-index: 1; backdrop-filter: blur(3px); }
+        .status-badge.status-pending { background-color: rgba(243, 156, 18, 0.85); }
+        .status-badge.status-rejected { background-color: rgba(231, 76, 60, 0.85); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: rgba(26, 26, 26, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: var(--nav-height); z-index: 1000; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .nav-item { color: var(--text-muted); font-size: 1.3rem; padding: 10px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; text-decoration: none; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item .unread-badge { position: absolute; top: 8px; right: 8px; background-color: var(--notification-unread-dot); color: white; font-size: 0.6rem; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; }
+        .add-btn { background: var(--gradient); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; transform: translateY(-20px); box-shadow: 0 8px 25px rgba(255, 51, 51, 0.45); cursor: pointer; border: none; }
+
+        .profile-page, .notifications-page { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-dark); z-index: 2000; transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; opacity: 0; visibility: hidden; }
+        .profile-page.active, .notifications-page.active { transform: translateX(0); opacity: 1; visibility: visible; }
+        .page-content { padding: 20px; padding-top: var(--header-height); max-width: var(--max-width); margin: 0 auto;}
+        .page-back-btn { background: rgba(0, 0, 0, 0.4); border: none; color: var(--primary-light); font-size: 1.3rem; position: absolute; left: 15px; top: 15px; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 5; }
+        
+        .profile-main-header { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 20px 30px; border-radius: var(--border-radius); margin-bottom: 30px; }
+        .profile-avatar-lg { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 5px solid var(--primary-color); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; background: var(--gradient); color: white; font-size: 3.2rem; }
+        #profileNameLarge { font-size: 2.2rem; margin-bottom: 5px; }
+        #profileBioLarge { margin-top: 20px; line-height: 1.7; padding: 20px; background-color: rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-sm); border-left: 4px solid var(--primary-color); }
+        .profile-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .profile-dashboard-item { background-color: var(--card-bg); padding: 25px; border-radius: var(--border-radius); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; }
+        .stat-card { text-align: center; }
+        .stat-value { display: block; font-size: 2rem; font-weight: 700; color: var(--primary-color); }
+        .stat-label-card { font-size: 0.8rem; color: var(--text-muted); }
+        .profile-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .profile-tab-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; padding: 10px 18px; cursor: pointer; border-bottom: 3px solid transparent; }
+        .profile-tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .profile-tab-content { display: none; }
+        .profile-tab-content.active { display: block; }
+        .profile-actions-footer { display: flex; gap: 15px; margin-top: 40px; justify-content: center; }
+        .profile-action-btn { color: white; border: none; padding: 12px 25px; border-radius: var(--border-radius-sm); font-size: 1rem; cursor: pointer; }
+        .edit-profile { background: var(--gradient); }
+        .logout-btn { background: var(--secondary-light); }
+        
+        .notifications-header { padding: 0 15px; background: var(--card-bg-dark); display: flex; align-items: center; justify-content: space-between; height: var(--header-height); }
+        .notifications-content-area { padding: 15px; }
+        .notification-item { background-color: var(--card-bg); border-radius: var(--border-radius-sm); padding: 15px; margin-bottom: 12px; display: flex; align-items: flex-start; border-left: 4px solid transparent; transition: background-color 0.3s, transform 0.3s; cursor: pointer; animation: notificationFadeIn 0.5s ease forwards; }
+        @keyframes notificationFadeIn { from { opacity: 0; transform: scale(0.95) translateX(-20px); } to { opacity: 1; transform: scale(1) translateX(0); } }
+        .notification-item:hover { background-color: var(--secondary-light); transform: scale(1.02); }
+        .notification-item.unread { background-color: rgba(52, 152, 219, 0.08); border-left-color: var(--notification-unread-dot); }
+        .notification-item.type-success { border-left-color: var(--notification-border-success); }
+        .notification-item.type-error { border-left-color: var(--notification-border-error); }
+        .notification-icon { font-size: 1.6rem; width: 45px; height: 45px; margin-right: 15px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: rgba(255,255,255,0.07); }
+        .notification-content { flex: 1; }
+        .notification-title { font-size: 1rem; font-weight: 600; color: var(--text-light); }
+        .notification-message { font-size: 0.9rem; color: var(--text-muted); }
+        .notification-timestamp { font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.85); z-index: 2500; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .modal.active { display: flex; opacity: 1; }
+        .modal-content { background-color: var(--card-bg-dark); border-radius: var(--border-radius); width: 90%; max-width: 480px; padding: 30px; box-shadow: var(--shadow-xl); transform: scale(0.95); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal.active .modal-content { transform: scale(1); }
+        .close-modal { position: absolute; top: 10px; right: 10px; font-size: 1.8rem; color: var(--text-muted); cursor: pointer; background: none; border: none; }
+        .modal-title { font-size: 1.6rem; margin-bottom: 25px; color: var(--primary-light); text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-input, .form-textarea { width: 100%; padding: 12px 15px; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-sm); background-color: var(--bg-light); color: var(--text-dark); transition: var(--transition); }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary-color); }
+        .submit-btn { background: var(--gradient); color: white; border: none; padding: 12px 18px; border-radius: var(--border-radius-sm); font-size: 1rem; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .submit-btn:disabled { background: var(--secondary-light); cursor: not-allowed; }
+        .spinner { display: none; width: 18px; height: 18px; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
+        .submit-btn.loading .spinner { display: inline-block; }
+        .submit-btn.loading .button-text-content { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .auth-switch { text-align: center; margin-top: 20px; color: var(--text-muted); }
+        .auth-switch a { color: var(--primary-color); cursor: pointer; }
+        
+        #toastContainer { position: fixed; top: 25px; right: 25px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 15px 25px; border-radius: var(--border-radius-sm); color: white; box-shadow: var(--shadow-xl); transform: translateX(calc(100% + 30px)); transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); display: flex; align-items: center; max-width: 380px; border-left: 5px solid var(--primary-color); }
+        .toast.show { transform: translateX(0); }
+        .toast.success { background-color: #27ae60; border-left-color: #2ecc71; }
+        .toast.error { background-color: #e74c3c; border-left-color: #ff4757; }
+        .toast.warning { background-color: #f39c12; border-left-color: #f1c40f; }
+        .toast i { margin-right: 12px; font-size: 1.3rem; }
+        
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); width: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; grid-column: 1 / -1; }
+        .empty-state i { font-size: 3.5rem; margin-bottom: 20px; color: var(--primary-color); opacity: 0.5; }
+        
+        .image-upload-tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .image-upload-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; }
+        .image-upload-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .image-upload-tab-content { display: none; }
+        .image-upload-tab-content.active { display: block; }
+        .book-cover-preview { max-width: 150px; margin: 10px auto; display: none; }
+        #bookCoverImageInput { display: none; }
+        .upload-picture-label { display: inline-block; padding: 8px 15px; background-color: var(--secondary-light); border-radius: var(--border-radius-sm); cursor: pointer; }
+        
+        #emailVerificationModal .modal-content { text-align: center; }
+        .verification-icon { font-size: 4rem; color: var(--primary-color); margin-bottom: 20px; }
+        
+        @media (max-width: 768px) {
+            :root { --header-height: 65px; --nav-height: 65px; }
+            .books-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        }
+        @media (max-width: 576px) {
+            :root { --header-height: 60px; --nav-height: 60px; }
+            .books-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-logo-container">
+            <i class="fas fa-book-reader loading-logo-icon"></i>
+            <span class="loading-logo-text">EduSparK</span>
+        </div>
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="logo-container">
+            <a href="#" class="logo" id="logoLink">
+                <i class="fas fa-book-reader"></i>
+                <span class="logo-text">EduSparK</span>
+            </a>
+        </div>
+        <div class="search-container" id="searchContainer">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search books, authors...">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="header-actions">
+            <button class="search-toggle-btn" id="searchToggleBtn" aria-label="Toggle Search">
+                <i class="fas fa-search"></i>
+            </button>
+            <div class="user-avatar" id="userAvatar">
+                <span id="avatarInitials">U</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="desktop-sidebar" id="desktopSidebar">
+        <div class="desktop-sidebar-logo">
+            <a href="#" class="logo">
+                <i class="fas fa-book-reader"></i>
+                <span class="logo-text">EduSparK</span>
+            </a>
+        </div>
+        <ul class="desktop-nav-list">
+            <li class="desktop-nav-item active" id="desktopHomeBtn">
+                <a href="#"><i class="fas fa-home icon"></i><span class="text">Home</span></a>
+            </li>
+            <li class="desktop-nav-item" id="desktopNotificationsBtn">
+                <a><i class="fas fa-bell icon"></i><span class="text">Notifications</span></a>
+            </li>
+            <li class="desktop-nav-item" id="desktopBatchesBtn">
+                <a href="/batches"><i class="fas fa-layer-group icon"></i><span class="text">Batches</span></a>
+            </li>
+        </ul>
+        <div class="desktop-add-book-btn" id="desktopAddBookBtn">
+            <i class="fas fa-plus icon"></i>
+            <span class="text">Share Book</span>
+        </div>
+        <div class="desktop-sidebar-footer">
+            <div class="desktop-profile-trigger" id="desktopProfileBtn">
+                <div class="user-avatar" id="desktopUserAvatar"><span id="desktopAvatarInitials">U</span></div>
+                <div class="desktop-profile-info">
+                    <span id="desktopUsername">User</span>
+                    <span id="desktopUserEmail">email@loading.com</span>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+    </nav>
+    
+    <section class="popular-books-section" data-aos="fade-in">
+        <h2 class="section-title">🔥 Popular Now</h2>
+        <div class="popular-books-carousel" id="popularBooksCarousel"></div>
+    </section>
+
+    <div class="container">
+        <h1 class="page-title" data-aos="fade-right">Discover Books</h1>
+        <div class="category-filter-container" id="categoryFilterContainer" data-aos="fade-up"></div>
+        <div class="books-grid" id="booksContainer"></div>
+        <div id="booksGridLoadingIndicator"><span class="spinner"></span> Loading more...</div>
+        <div class="empty-state" id="emptyStateBooks">
+            <i class="fas fa-ghost"></i>
+            <h3>No Books Found Yet</h3>
+            <p>Looks a bit empty here. Try another category or check back later!</p>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="homeBtn"><i class="fas fa-home"></i></div>
+        <div class="nav-item" id="notificationsBtn">
+            <i class="fas fa-bell"></i>
+            <span class="unread-badge" id="unreadNotificationsBadge">0</span>
+        </div>
+        <button class="add-btn" id="addBookBtn" aria-label="Add Book"><i class="fas fa-plus"></i></button>
+        <a href="/batches" class="nav-item" id="batchesBtn"><i class="fas fa-layer-group"></i></a>
+        <div class="nav-item" id="profileBtn"><i class="fas fa-user"></i></div>
+    </nav>
+
+    <div class="profile-page" id="profilePage">
+        <div class="page-content">
+            <button class="page-back-btn" id="profileBackBtn"><i class="fas fa-arrow-left"></i></button>
+            <div class="profile-main-header">
+                <div class="profile-avatar-lg" id="profileAvatarLarge"><span id="profileAvatarInitialsLarge">U</span></div>
+                <h1 id="profileNameLarge">User Loading...</h1>
+                <div id="profileBioLarge">Loading bio...</div>
+            </div>
+            <div class="profile-dashboard">
+                <div class="profile-dashboard-item">
+                    <h3>Your Activity</h3>
+                    <div class="stat-grid">
+                        <div class="stat-card"><span class="stat-value" id="booksSharedLarge">0</span><span class="stat-label-card">Submitted</span></div>
+                        <div class="stat-card"><span class="stat-value" id="booksDownloadedLarge">0</span><span class="stat-label-card">Downloads</span></div>
+                        <div class="stat-card"><span class="stat-value" id="totalBookDownloadsLarge">0</span><span class="stat-label-card">Shared Downloads</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-tabs">
+                <button class="profile-tab-btn active" data-tab="submissions">My Submissions</button>
+                <button class="profile-tab-btn" data-tab="security">Security</button>
+            </div>
+            <div id="tab-submissions" class="profile-tab-content active">
+                <div id="profileBooksContainer" class="books-grid"></div>
+                <div class="empty-state" id="emptyProfileBooks" style="display: none;">
+                    <i class="fas fa-book-medical"></i><h3>No Submissions Yet</h3><p>Your pending/rejected submissions will appear here.</p>
+                </div>
+            </div>
+            <div id="tab-security" class="profile-tab-content">
+                <button class="submit-btn" id="changePasswordBtn">Send Password Reset Email</button>
+            </div>
+            <div class="profile-actions-footer">
+                <button class="profile-action-btn edit-profile" id="editProfileBtn"><i class="fas fa-user-edit"></i> Edit Profile</button>
+                <button class="profile-action-btn logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notifications-page" id="notificationsPage">
+        <div class="notifications-header">
+            <button class="page-back-btn" id="notificationsBackBtn"><i class="fas fa-arrow-left"></i></button>
+            <h3>Notifications</h3>
+            <button class="submit-btn" id="markAllReadBtn" style="width: auto; padding: 8px 12px; font-size: 0.8rem;">Mark All Read</button>
+        </div>
+        <div class="notifications-content-area" id="notificationsList"></div>
+        <div class="empty-state" id="emptyNotificationsState" style="display: none;">
+            <i class="fas fa-bell-slash"></i><h3>No Notifications</h3><p>Updates about your activity will appear here.</p>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="addBookModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeAddBookModal">&times;</button>
+            <h2 class="modal-title">Share a New Book</h2>
+            <form id="addBookForm">
+                <div class="form-group"><label for="bookName" class="form-label">Book Title *</label><input type="text" id="bookName" class="form-input" required></div>
+                <div class="form-group"><label for="authorName" class="form-label">Author(s) *</label><input type="text" id="authorName" class="form-input" required></div>
+                <div class="form-group"><label for="bookCategory" class="form-label">Category *</label><input type="text" id="bookCategory" class="form-input" required></div>
+                <div class="form-group">
+                    <label class="form-label">Cover Image *</label>
+                    <div class="image-upload-tabs">
+                        <div class="image-upload-tab active" data-tab="upload">Upload</div>
+                        <div class="image-upload-tab" data-tab="url">URL</div>
+                    </div>
+                    <div id="uploadContent" class="image-upload-tab-content active">
+                        <input type="file" id="bookCoverImageInput" accept="image/*"><label for="bookCoverImageInput" class="upload-picture-label"><i class="fas fa-upload"></i> Choose Image</label>
+                        <img id="bookCoverPreview" class="book-cover-preview" src="#" alt="Cover Preview">
+                    </div>
+                    <div id="urlContent" class="image-upload-tab-content"><input type="url" id="bookImageUrl" class="form-input" placeholder="https://example.com/image.jpg"></div>
+                </div>
+                <div class="form-group"><label for="driveLink" class="form-label">Google Drive Link *</label><input type="url" id="driveLink" class="form-input" required></div>
+                <div class="form-group"><label for="bookDescription" class="form-label">Description</label><textarea id="bookDescription" class="form-textarea" rows="3"></textarea></div>
+                <button type="submit" class="submit-btn" id="submitBookBtn"><span class="button-text-content">Submit</span><span class="spinner"></span></button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeLoginModal">&times;</button>
+            <h2 class="modal-title">Welcome Back!</h2>
+            <form id="loginForm">
+                <div class="form-group"><label for="loginEmail" class="form-label">Email</label><input type="email" id="loginEmail" class="form-input" required></div>
+                <div class="form-group"><label for="loginPassword" class="form-label">Password</label><input type="password" id="loginPassword" class="form-input" required></div>
+                <button type="submit" class="submit-btn" id="loginBtn"><span class="button-text-content">Login</span><span class="spinner"></span></button>
+            </form>
+             <div class="auth-switch">Forgot Password? <a id="forgotPasswordLink">Reset</a></div>
+            <div class="auth-switch">Don't have an account? <a id="switchToSignup">Sign up</a></div>
+        </div>
+    </div>
+
+    <div class="modal" id="signupModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeSignupModal">&times;</button>
+            <h2 class="modal-title">Join EduSparK</h2>
+            <form id="signupForm">
+                <div class="form-group"><label for="signupName" class="form-label">Full Name</label><input type="text" id="signupName" class="form-input" required></div>
+                <div class="form-group"><label for="signupEmail" class="form-label">Email</label><input type="email" id="signupEmail" class="form-input" required></div>
+                <div class="form-group"><label for="signupPassword" class="form-label">Password</label><input type="password" id="signupPassword" class="form-input" required></div>
+                <button type="submit" class="submit-btn" id="signupBtn"><span class="button-text-content">Create Account</span><span class="spinner"></span></button>
+            </form>
+            <div class="auth-switch">Already have an account? <a id="switchToLogin">Login</a></div>
+        </div>
+    </div>
+
+    <div class="modal" id="editProfileModal">
+         <div class="modal-content">
+            <button class="close-modal" id="closeEditProfileModal">&times;</button>
+            <h2 class="modal-title">Edit Profile</h2>
+            <form id="editProfileForm">
+                <div class="form-group"><label for="editProfileName" class="form-label">Full Name</label><input type="text" id="editProfileName" class="form-input" required></div>
+                <div class="form-group"><label for="editProfileBio" class="form-label">Bio</label><textarea id="editProfileBio" class="form-textarea" rows="3"></textarea></div>
+                <button type="submit" class="submit-btn" id="saveProfileBtn"><span class="button-text-content">Save</span><span class="spinner"></span></button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="emailVerificationModal">
+        <div class="modal-content">
+            <i class="fas fa-envelope-open-text verification-icon"></i>
+            <h2 class="modal-title">Verify Your Email</h2>
+            <p>A verification link has been sent to <strong id="verificationEmailSentTo">your.email@example.com</strong>. Please check your inbox.</p>
+            <button id="resendVerificationEmailBtn" class="submit-btn" style="margin-top: 20px;">Resend Email</button>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // --- DOM Elements ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+        const elements = {
+            body: document.body,
+            loadingOverlay: $('#loadingOverlay'),
+            userAvatar: $('#userAvatar'),
+            avatarInitials: $('#avatarInitials'),
+            desktopSidebar: $('#desktopSidebar'),
+            sidebarToggle: $('#sidebarToggle'),
+            desktopUserAvatar: $('#desktopUserAvatar'),
+            desktopAvatarInitials: $('#desktopAvatarInitials'),
+            desktopUsername: $('#desktopUsername'),
+            desktopUserEmail: $('#desktopUserEmail'),
+            desktopHomeBtn: $('#desktopHomeBtn'),
+            desktopNotificationsBtn: $('#desktopNotificationsBtn'),
+            desktopBatchesBtn: $('#desktopBatchesBtn'),
+            desktopAddBookBtn: $('#desktopAddBookBtn'),
+            desktopProfileBtn: $('#desktopProfileBtn'),
+            homeBtn: $('#homeBtn'),
+            notificationsBtn: $('#notificationsBtn'),
+            addBookBtn: $('#addBookBtn'),
+            batchesBtn: $('#batchesBtn'),
+            profileBtn: $('#profileBtn'),
+            booksContainer: $('#booksContainer'),
+            popularBooksCarousel: $('#popularBooksCarousel'),
+            categoryFilterContainer: $('#categoryFilterContainer'),
+            emptyStateBooks: $('#emptyStateBooks'),
+            booksGridLoadingIndicator: $('#booksGridLoadingIndicator'),
+            profilePage: $('#profilePage'),
+            profileBackBtn: $('#profileBackBtn'),
+            profileAvatarLarge: $('#profileAvatarLarge'),
+            profileAvatarInitialsLarge: $('#profileAvatarInitialsLarge'),
+            profileNameLarge: $('#profileNameLarge'),
+            profileBioLarge: $('#profileBioLarge'),
+            booksSharedLarge: $('#booksSharedLarge'),
+            booksDownloadedLarge: $('#booksDownloadedLarge'),
+            totalBookDownloadsLarge: $('#totalBookDownloadsLarge'),
+            profileBooksContainer: $('#profileBooksContainer'),
+            emptyProfileBooks: $('#emptyProfileBooks'),
+            editProfileBtn: $('#editProfileBtn'),
+            logoutBtn: $('#logoutBtn'),
+            changePasswordBtn: $('#changePasswordBtn'),
+            notificationsPage: $('#notificationsPage'),
+            notificationsBackBtn: $('#notificationsBackBtn'),
+            notificationsList: $('#notificationsList'),
+            emptyNotificationsState: $('#emptyNotificationsState'),
+            unreadNotificationsBadge: $('#unreadNotificationsBadge'),
+            markAllReadBtn: $('#markAllReadBtn'),
+            addBookModal: $('#addBookModal'),
+            closeAddBookModal: $('#closeAddBookModal'),
+            addBookForm: $('#addBookForm'),
+            bookCoverImageInput: $('#bookCoverImageInput'),
+            bookCoverPreview: $('#bookCoverPreview'),
+            bookImageUrl: $('#bookImageUrl'),
+            imageUploadTabs: $$('.image-upload-tab'),
+            uploadContent: $('#uploadContent'),
+            urlContent: $('#urlContent'),
+            loginModal: $('#loginModal'),
+            closeLoginModal: $('#closeLoginModal'),
+            loginForm: $('#loginForm'),
+            switchToSignup: $('#switchToSignup'),
+            signupModal: $('#signupModal'),
+            closeSignupModal: $('#closeSignupModal'),
+            signupForm: $('#signupForm'),
+            switchToLogin: $('#switchToLogin'),
+            editProfileModal: $('#editProfileModal'),
+            closeEditProfileModal: $('#closeEditProfileModal'),
+            editProfileForm: $('#editProfileForm'),
+            emailVerificationModal: $('#emailVerificationModal'),
+            verificationEmailSentTo: $('#verificationEmailSentTo'),
+            resendVerificationEmailBtn: $('#resendVerificationEmailBtn'),
+            forgotPasswordLink: $('#forgotPasswordLink'),
+            toastContainer: $('#toastContainer'),
+            searchContainer: $('#searchContainer'),
+            searchInput: $('#searchInput'),
+            searchResults: $('#searchResults'),
+            searchToggleBtn: $('#searchToggleBtn'),
+            profileTabs: $$('.profile-tab-btn'),
+            tabSubmissions: $('#tab-submissions'),
+            tabSecurity: $('#tab-security'),
+        };
+
+        // --- Global State ---
+        let currentUser = null;
+        let userData = null;
+        let allBooksCache = [];
+        let currentCategory = 'All';
+        let lastVisibleBook = null;
+        let isLoadingBooks = false;
+        let hasMoreBooks = true;
+        const BOOKS_PER_PAGE = 12;
+        const bookCategories = ['All', '9th', '10th', '11th', '12th', 'NEET', 'JEE', 'UPSC', 'Coding', 'Fiction'];
+
+        // --- Utility Functions ---
+        function showToast(message, type = "info", duration = 4000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            let iconClass = 'fas fa-info-circle';
+            if (type === 'success') iconClass = 'fas fa-check-circle';
+            if (type === 'error') iconClass = 'fas fa-exclamation-triangle';
+            if (type === 'warning') iconClass = 'fas fa-exclamation-circle';
+            toast.innerHTML = `<i class="${iconClass}"></i><span>${message}</span>`;
+            elements.toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, duration);
+        }
+
+        function toggleSpinner(btn, show) {
+            if (!btn) return;
+            const spinner = btn.querySelector('.spinner');
+            const text = btn.querySelector('.button-text-content');
+            if (show) {
+                btn.disabled = true;
+                if (spinner) spinner.style.display = 'inline-block';
+                if (text) text.style.display = 'none';
+            } else {
+                btn.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+                if (text) text.style.display = 'inline-flex';
+            }
+        }
+        
+        function handleAuthError(error) {
+            console.error("Auth Error:", error.code, error.message);
+            switch (error.code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential':
+                    return "Invalid email or password. Please try again.";
+                case 'auth/email-already-in-use':
+                    return "This email is already registered.";
+                case 'auth/weak-password':
+                    return "Password is too weak (must be at least 6 characters).";
+                case 'auth/invalid-email':
+                    return "Please enter a valid email address.";
+                case 'auth/too-many-requests':
+                    return "Access temporarily disabled due to too many requests. Please try again later.";
+                default:
+                    return "An unexpected error occurred. Please try again.";
+            }
+        }
+        
+        function escapeHTML(str) {
+            return str.replace(/[&<>"']/g, match => ({'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;',"'": '&#39;'})[match]);
+        }
+        
+        // --- Authentication ---
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                if (!user.emailVerified) {
+                    elements.verificationEmailSentTo.textContent = user.email;
+                    openModal(elements.emailVerificationModal);
+                    elements.loadingOverlay.classList.add('hidden');
+                    return;
+                }
+                closeModal(elements.emailVerificationModal);
+                db.collection('users').doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        userData = { id: doc.id, ...doc.data() };
+                        updateUIForLoggedInUser();
+                        setupUserListeners();
+                    } else {
+                        // Create user doc if it's a new login (e.g., first time)
+                        const name = user.displayName || "New User";
+                        const newUserData = {
+                            name: name,
+                            email: user.email,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            booksSharedCount: 0,
+                            booksDownloadedCount: 0,
+                            totalBookDownloads: 0
+                        };
+                        db.collection('users').doc(user.uid).set(newUserData)
+                            .then(() => userData = newUserData);
+                    }
+                    elements.loadingOverlay.classList.add('hidden');
+                }, error => {
+                    console.error("Error fetching user data:", error);
+                    showToast("Could not load your profile.", "error");
+                    elements.loadingOverlay.classList.add('hidden');
+                });
+            } else {
+                userData = null;
+                updateUIForLoggedOutUser();
+                elements.loadingOverlay.classList.add('hidden');
+            }
+        });
+
+        // --- UI Updates ---
+        function updateUIForLoggedInUser() {
+            elements.body.classList.add('logged-in');
+            elements.body.classList.remove('logged-out');
+            updateAvatars();
+            updateProfilePage();
+            fetchInitialData();
+        }
+
+        function updateUIForLoggedOutUser() {
+            elements.body.classList.remove('logged-in');
+            elements.body.classList.add('logged-out');
+            updateAvatars();
+            elements.booksContainer.innerHTML = '';
+            elements.popularBooksCarousel.innerHTML = '';
+            elements.emptyStateBooks.style.display = 'flex';
+            elements.emptyStateBooks.innerHTML = `<i class="fas fa-sign-in-alt"></i><h3>Login to Discover Books</h3><p>Join our community to share and download resources.</p>`;
+            closeAllPagesAndModals();
+        }
+
+        function updateAvatars() {
+            const initials = userData ? userData.name.charAt(0).toUpperCase() : 'U';
+            const avatarHTML = `<span id="avatarInitials">${initials}</span>`;
+            elements.userAvatar.innerHTML = avatarHTML;
+            elements.desktopUserAvatar.innerHTML = avatarHTML;
+            elements.desktopUsername.textContent = userData ? userData.name : "Guest";
+            elements.desktopUserEmail.textContent = userData ? userData.email : "Not logged in";
+        }
+
+        function updateProfilePage() {
+            if (!userData) return;
+            elements.profileAvatarInitialsLarge.textContent = userData.name.charAt(0).toUpperCase();
+            elements.profileNameLarge.textContent = userData.name;
+            elements.profileBioLarge.textContent = userData.bio || "No bio yet. Edit your profile to add one!";
+            elements.booksSharedLarge.textContent = userData.booksSharedCount || 0;
+            elements.booksDownloadedLarge.textContent = userData.booksDownloadedCount || 0;
+            elements.totalBookDownloadsLarge.textContent = userData.totalBookDownloads || 0;
+        }
+        
+        // --- Data Fetching and Rendering ---
+        function fetchInitialData() {
+            renderCategoryFilters();
+            fetchBooks(false);
+            fetchPopularBooks();
+            fetchUserSubmissions();
+            setupAllBooksListenerForSearch();
+        }
+
+        function renderSkeleton(container, count) {
+            let skeletonHTML = '';
+            for (let i = 0; i < count; i++) {
+                skeletonHTML += `
+                    <div class="skeleton-book-card">
+                        <div class="skeleton skeleton-img"></div>
+                        <div class="skeleton-info">
+                            <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                            <div class="skeleton skeleton-text" style="width: 50%;"></div>
+                            <div class="skeleton skeleton-btn"></div>
+                        </div>
+                    </div>`;
+            }
+            container.innerHTML = skeletonHTML;
+        }
+        
+        async function fetchBooks(loadMore = false) {
+            if (isLoadingBooks || !currentUser) return;
+            isLoadingBooks = true;
+
+            if (loadMore) {
+                elements.booksGridLoadingIndicator.style.display = 'block';
+            } else {
+                lastVisibleBook = null;
+                hasMoreBooks = true;
+                renderSkeleton(elements.booksContainer, BOOKS_PER_PAGE);
+            }
+            
+            let query = db.collection('books').where('status', '==', 'approved');
+            if (currentCategory !== 'All') {
+                query = query.where('category', '==', currentCategory);
+            }
+            query = query.orderBy('approvedAt', 'desc').limit(BOOKS_PER_PAGE);
+
+            if (loadMore && lastVisibleBook) {
+                query = query.startAfter(lastVisibleBook);
+            }
+
+            try {
+                const snapshot = await query.get();
+                if (!loadMore) elements.booksContainer.innerHTML = '';
+
+                if (snapshot.empty && !loadMore) {
+                    elements.emptyStateBooks.style.display = 'flex';
+                } else {
+                    elements.emptyStateBooks.style.display = 'none';
+                }
+
+                snapshot.docs.forEach(doc => {
+                    elements.booksContainer.innerHTML += createBookCardHTML({ id: doc.id, ...doc.data() });
+                });
+                
+                lastVisibleBook = snapshot.docs[snapshot.docs.length - 1];
+                hasMoreBooks = snapshot.docs.length === BOOKS_PER_PAGE;
+                
+            } catch (error) {
+                console.error("Error fetching books:", error);
+                if(error.code === 'failed-precondition') showToast("Database index missing. Contact admin.", "error");
+                else showToast("Could not load books.", "error");
+            } finally {
+                isLoadingBooks = false;
+                elements.booksGridLoadingIndicator.style.display = 'none';
+            }
+        }
+        
+        async function fetchPopularBooks() {
+            if (!currentUser) return;
+            renderSkeleton(elements.popularBooksCarousel, 5);
+            try {
+                const snapshot = await db.collection('books').where('status', '==', 'approved').orderBy('downloads', 'desc').limit(10).get();
+                elements.popularBooksCarousel.innerHTML = '';
+                snapshot.forEach(doc => {
+                    elements.popularBooksCarousel.innerHTML += createPopularBookCardHTML({ id: doc.id, ...doc.data() });
+                });
+            } catch (error) {
+                console.error("Error fetching popular books:", error);
+            }
+        }
+        
+        function fetchUserSubmissions() {
+             if (!currentUser) return;
+             db.collection('pending_books').where('submittedBy', '==', currentUser.uid).orderBy('submittedAt', 'desc').onSnapshot(snapshot => {
+                 elements.profileBooksContainer.innerHTML = '';
+                 if(snapshot.empty){
+                    elements.emptyProfileBooks.style.display = 'flex';
+                 } else {
+                    elements.emptyProfileBooks.style.display = 'none';
+                    snapshot.forEach(doc => {
+                        elements.profileBooksContainer.innerHTML += createUserSubmissionCardHTML({ id: doc.id, ...doc.data() });
+                    });
+                 }
+             });
+        }
+        
+        function setupAllBooksListenerForSearch() {
+            if (!currentUser) {
+                allBooksCache = [];
+                return;
+            }
+            db.collection('books').where('status', '==', 'approved')
+                .onSnapshot(snapshot => {
+                    allBooksCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                });
+        }
+
+        // --- Card HTML Generators ---
+        function createBookCardHTML(book) {
+            const defaultImage = 'https://via.placeholder.com/300x400/333/888?text=No+Cover';
+            const imageUrl = escapeHTML(book.imageUrl || defaultImage);
+            return `
+                <div class="book-card" data-id="${book.id}" data-source="books" data-aos="fade-up">
+                    <div class="book-img-container">
+                        <img src="${imageUrl}" alt="${escapeHTML(book.bookName)}" class="book-img" loading="lazy" onerror="this.src='${defaultImage}'">
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title" title="${escapeHTML(book.bookName)}">${escapeHTML(book.bookName)}</h3>
+                        <div class="book-meta">
+                            <span><i class="fas fa-download"></i> ${book.downloads || 0}</span>
+                            <span><i class="fas fa-star"></i> ${book.avgRating ? book.avgRating.toFixed(1) : 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function createPopularBookCardHTML(book) {
+            const defaultImage = 'https://via.placeholder.com/200x280/333/888?text=No+Cover';
+            const imageUrl = escapeHTML(book.imageUrl || defaultImage);
+             return `
+                <div class="popular-book-card" data-id="${book.id}" data-source="books">
+                    <div class="popular-book-img-container">
+                        <img src="${imageUrl}" alt="${escapeHTML(book.bookName)}" class="popular-book-img" loading="lazy" onerror="this.src='${defaultImage}'">
+                    </div>
+                    <div class="popular-book-info">
+                        <h4 class="popular-book-title">${escapeHTML(book.bookName)}</h4>
+                        <p class="popular-book-meta"><i class="fas fa-download"></i> ${book.downloads || 0}</p>
+                    </div>
+                </div>`;
+        }
+
+        function createUserSubmissionCardHTML(book) {
+            const defaultImage = 'https://via.placeholder.com/300x400/333/888?text=No+Cover';
+            const imageUrl = escapeHTML(book.imageUrl || defaultImage);
+            return `
+                <div class="book-card" data-id="${book.id}" data-source="pending_books">
+                     <div class="book-img-container">
+                        <img src="${imageUrl}" alt="${escapeHTML(book.bookName)}" class="book-img" loading="lazy" onerror="this.src='${defaultImage}'">
+                        <span class="status-badge status-${book.status}">${book.status}</span>
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">${escapeHTML(book.bookName)}</h3>
+                    </div>
+                </div>`;
+        }
+
+        // --- Event Listeners ---
+        function setupUserListeners() {
+            if (!currentUser) return;
+            // Notification for book approval/rejection
+            db.collection('pending_books').where('submittedBy', '==', currentUser.uid).onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'modified') {
+                        const book = change.doc.data();
+                        if (book.status === 'rejected') {
+                            showToast(`Your submission "${book.bookName}" was rejected.`, "warning");
+                            createNotification(currentUser.uid, "Submission Rejected", `Your book "${book.bookName}" was rejected. Reason: ${book.rejectionReason || 'Not provided'}.`, 'error');
+                        }
+                    }
+                });
+            });
+            db.collection('books').where('submittedBy', '==', currentUser.uid).where('status', '==', 'approved').onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if(change.type === 'added'){
+                        const book = change.doc.data();
+                        showToast(`Congratulations! Your book "${book.bookName}" has been approved.`, "success");
+                        createNotification(currentUser.uid, "Submission Approved", `Your book "${book.bookName}" is now live on EduSparK!`, 'success');
+                    }
+                });
+            });
+            // Unread notifications count
+            db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).onSnapshot(snapshot => {
+                const count = snapshot.size;
+                elements.unreadNotificationsBadge.textContent = count;
+                elements.unreadNotificationsBadge.style.display = count > 0 ? 'flex' : 'none';
+            });
+        }
+        
+        function createNotification(userId, title, message, type) {
+            db.collection('users').doc(userId).collection('notifications').add({
+                title, message, type, read: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        // --- Page Navigation and Modals ---
+        function openModal(modal) { modal.classList.add('active'); elements.body.style.overflow = 'hidden'; }
+        function closeModal(modal) { modal.classList.remove('active'); elements.body.style.overflow = 'auto'; }
+        function openPage(page) {
+            if (!currentUser) { showToast("Please login to access this section.", "info"); openModal(elements.loginModal); return; }
+            page.classList.add('active'); elements.body.style.overflow = 'hidden';
+        }
+        function closePage(page) { page.classList.remove('active'); elements.body.style.overflow = 'auto'; }
+        function closeAllPagesAndModals() {
+            closePage(elements.profilePage);
+            closePage(elements.notificationsPage);
+            $$('.modal.active').forEach(closeModal);
+        }
+
+        // --- Sidebar Logic ---
+        elements.sidebarToggle.addEventListener('click', () => {
+            elements.body.classList.toggle('sidebar-expanded');
+            localStorage.setItem('sidebarExpanded', elements.body.classList.contains('sidebar-expanded'));
+        });
+        if (localStorage.getItem('sidebarExpanded') === 'true') {
+            elements.body.classList.add('sidebar-expanded');
+        }
+
+        // --- Event Listener Setup ---
+        // Navigation
+        [elements.homeBtn, elements.desktopHomeBtn].forEach(btn => btn.addEventListener('click', () => { closeAllPagesAndModals(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
+        [elements.notificationsBtn, elements.desktopNotificationsBtn].forEach(btn => btn.addEventListener('click', () => openPage(elements.notificationsPage)));
+        [elements.profileBtn, elements.desktopProfileBtn].forEach(btn => btn.addEventListener('click', () => openPage(elements.profilePage)));
+        [elements.addBookBtn, elements.desktopAddBookBtn].forEach(btn => btn.addEventListener('click', () => {
+             if (!currentUser) { showToast("Please login to share a book.", "info"); openModal(elements.loginModal); return; }
+             openModal(elements.addBookModal);
+        }));
+        elements.profileBackBtn.addEventListener('click', () => closePage(elements.profilePage));
+        elements.notificationsBackBtn.addEventListener('click', () => closePage(elements.notificationsPage));
+        elements.logoLink.addEventListener('click', (e) => { e.preventDefault(); elements.homeBtn.click(); });
+        
+        // Modals
+        elements.closeLoginModal.addEventListener('click', () => closeModal(elements.loginModal));
+        elements.closeSignupModal.addEventListener('click', () => closeModal(elements.signupModal));
+        elements.closeAddBookModal.addEventListener('click', () => closeModal(elements.addBookModal));
+        elements.closeEditProfileModal.addEventListener('click', () => closeModal(elements.editProfileModal));
+        elements.switchToSignup.addEventListener('click', () => { closeModal(elements.loginModal); openModal(elements.signupModal); });
+        elements.switchToLogin.addEventListener('click', () => { closeModal(elements.signupModal); openModal(elements.loginModal); });
+        
+        // Forms
+        elements.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleSpinner(elements.loginForm.querySelector('.submit-btn'), true);
+            try {
+                await auth.signInWithEmailAndPassword($('#loginEmail').value, $('#loginPassword').value);
+                closeModal(elements.loginModal);
+            } catch (error) {
+                showToast(handleAuthError(error), "error");
+            }
+            toggleSpinner(elements.loginForm.querySelector('.submit-btn'), false);
+        });
+
+        elements.signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleSpinner(elements.signupForm.querySelector('.submit-btn'), true);
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword($('#signupEmail').value, $('#signupPassword').value);
+                await userCredential.user.updateProfile({ displayName: $('#signupName').value });
+                await userCredential.user.sendEmailVerification();
+                closeModal(elements.signupModal);
+                elements.verificationEmailSentTo.textContent = userCredential.user.email;
+                openModal(elements.emailVerificationModal);
+            } catch (error) {
+                showToast(handleAuthError(error), "error");
+            }
+            toggleSpinner(elements.signupForm.querySelector('.submit-btn'), false);
+        });
+        
+        elements.addBookForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = elements.addBookForm.querySelector('.submit-btn');
+            toggleSpinner(btn, true);
+            const isUpload = elements.uploadContent.classList.contains('active');
+            let imageUrl = isUpload ? null : elements.bookImageUrl.value;
+
+            try {
+                if (isUpload && elements.bookCoverImageInput.files[0]) {
+                    const file = elements.bookCoverImageInput.files[0];
+                    const storageRef = storage.ref(`book_covers/${Date.now()}_${file.name}`);
+                    const snapshot = await storageRef.put(file);
+                    imageUrl = await snapshot.ref.getDownloadURL();
+                }
+
+                if (!imageUrl) {
+                    throw new Error("Cover image is required.");
+                }
+                
+                await db.collection('pending_books').add({
+                    bookName: $('#bookName').value,
+                    authorName: $('#authorName').value,
+                    category: $('#bookCategory').value,
+                    driveLink: $('#driveLink').value,
+                    description: $('#bookDescription').value,
+                    imageUrl: imageUrl,
+                    submittedBy: currentUser.uid,
+                    submittedByName: userData.name,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'pending',
+                    downloads: 0,
+                    avgRating: 0
+                });
+                
+                db.collection('users').doc(currentUser.uid).update({ booksSharedCount: firebase.firestore.FieldValue.increment(1) });
+                showToast("Book submitted for approval!", "success");
+                closeModal(elements.addBookModal);
+                elements.addBookForm.reset();
+            } catch (error) {
+                showToast(`Submission failed: ${error.message}`, "error");
+            }
+            toggleSpinner(btn, false);
+        });
+        
+        elements.editProfileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleSpinner(elements.editProfileForm.querySelector('.submit-btn'), true);
+            try {
+                 await db.collection('users').doc(currentUser.uid).update({
+                    name: $('#editProfileName').value,
+                    bio: $('#editProfileBio').value
+                 });
+                 showToast("Profile updated!", "success");
+                 closeModal(elements.editProfileModal);
+            } catch(error) {
+                 showToast("Failed to update profile.", "error");
+            }
+            toggleSpinner(elements.editProfileForm.querySelector('.submit-btn'), false);
+        });
+
+        // Other actions
+        elements.logoutBtn.addEventListener('click', () => auth.signOut());
+        elements.editProfileBtn.addEventListener('click', () => {
+            $('#editProfileName').value = userData.name;
+            $('#editProfileBio').value = userData.bio || '';
+            openModal(elements.editProfileModal);
+        });
+        elements.forgotPasswordLink.addEventListener('click', () => {
+            const email = prompt("Please enter your account email to send a reset link:");
+            if (email) {
+                auth.sendPasswordResetEmail(email)
+                    .then(() => showToast("Password reset email sent!", "success"))
+                    .catch(error => showToast(handleAuthError(error), "error"));
+            }
+        });
+        elements.changePasswordBtn.addEventListener('click', () => {
+             if (currentUser && currentUser.email) {
+                auth.sendPasswordResetEmail(currentUser.email)
+                    .then(() => showToast(`Password reset email sent to ${currentUser.email}`, "success"))
+                    .catch(error => showToast(handleAuthError(error), "error"));
+            }
+        });
+        elements.resendVerificationEmailBtn.addEventListener('click', () => {
+            if (currentUser) currentUser.sendEmailVerification().then(() => showToast("Verification email resent.", "success"));
+        });
+        
+        elements.markAllReadBtn.addEventListener('click', () => {
+            const batch = db.batch();
+            db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).get().then(snapshot => {
+                snapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, { read: true });
+                });
+                batch.commit().then(() => showToast("All notifications marked as read.", "success"));
+            });
+        });
+        
+        // Infinite scroll for main book grid
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300 && hasMoreBooks && !isLoadingBooks) {
+                fetchBooks(true);
+            }
+        });
+
+        // Book card click navigates to detail page
+        function handleCardClick(e) {
+            const card = e.target.closest('.book-card, .popular-book-card');
+            if (card) {
+                if(!currentUser) { showToast("Please login to view details.", "info"); openModal(elements.loginModal); return; }
+                const bookId = card.dataset.id;
+                const source = card.dataset.source;
+                window.location.href = `book-detail.html?id=${bookId}&source=${source}`;
+            }
+        }
+        elements.booksContainer.addEventListener('click', handleCardClick);
+        elements.popularBooksCarousel.addEventListener('click', handleCardClick);
+        elements.profileBooksContainer.addEventListener('click', handleCardClick);
+        
+        // Category filtering
+        elements.categoryFilterContainer.addEventListener('click', (e) => {
+            if (e.target.matches('.category-filter-item')) {
+                currentCategory = e.target.dataset.category;
+                $$('.category-filter-item').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                fetchBooks(false);
+            }
+        });
+        
+        function renderCategoryFilters() {
+            elements.categoryFilterContainer.innerHTML = bookCategories.map(cat =>
+                `<button class="category-filter-item ${cat === 'All' ? 'active' : ''}" data-category="${cat}">${cat}</button>`
+            ).join('');
+        }
+        
+        // Search
+        elements.searchToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.searchContainer.classList.toggle('active');
+            if (elements.searchContainer.classList.contains('active')) elements.searchInput.focus();
+        });
+        elements.searchInput.addEventListener('input', () => {
+            const query = elements.searchInput.value.toLowerCase();
+            if(query.length > 2) {
+                const results = allBooksCache.filter(b => b.bookName.toLowerCase().includes(query) || b.authorName.toLowerCase().includes(query));
+                renderSearchResults(results.slice(0, 10));
+            } else {
+                elements.searchResults.style.display = 'none';
+            }
+        });
+        function renderSearchResults(results) {
+            if (results.length === 0) {
+                 elements.searchResults.innerHTML = `<div class="no-results">No results</div>`;
+            } else {
+                 elements.searchResults.innerHTML = results.map(book => `
+                    <div class="search-result-item" data-id="${book.id}" data-source="books">
+                        <h4>${escapeHTML(book.bookName)}</h4>
+                        <p>by ${escapeHTML(book.authorName)}</p>
+                    </div>`).join('');
+            }
+            elements.searchResults.style.display = 'block';
+        }
+        elements.searchResults.addEventListener('click', e => {
+            const item = e.target.closest('.search-result-item');
+            if (item) {
+                window.location.href = `book-detail.html?id=${item.dataset.id}&source=${item.dataset.source}`;
+            }
+        });
+        document.addEventListener('click', (e) => {
+             if (!elements.searchContainer.contains(e.target)) {
+                 elements.searchResults.style.display = 'none';
+                 if(window.innerWidth <= 991) elements.searchContainer.classList.remove('active');
+             }
+        });
+        
+        // Profile Tabs
+        elements.profileTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                elements.profileTabs.forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                elements.tabSubmissions.classList.toggle('active', e.target.dataset.tab === 'submissions');
+                elements.tabSecurity.classList.toggle('active', e.target.dataset.tab === 'security');
+            });
+        });
+
+        // Init
+        AOS.init({ duration: 600, once: true, offset: 50 });
+    </script>
+</body>
+</html>

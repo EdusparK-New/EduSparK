@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
+               script-src 'self' 'unsafe-inline' https://www.gstatic.com/firebasejs/ https://unpkg.com https://cdn.jsdelivr.net https://www.google.com/recaptcha/api.js https://*.google.com https://www.gstatic.com/recaptcha/ https://www.youtube.com https://player.vimeo.com;
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com;
+               font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+               img-src 'self' data: blob: https: http://via.placeholder.com https://firebasestorage.googleapis.com;
+               connect-src 'self' wss://*.firebaseio.com https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebasestorage.googleapis.com https://firebaseappcheck.googleapis.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self';
+               frame-src 'self' https://www.google.com/recaptcha/ https://*.google.com https://www.youtube.com https://player.vimeo.com;">
+    <title>EduSparK - Subject Content</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-check.js"></script>
+
+    <link rel="stylesheet" href="subject-detail.css">
+</head>
+<body data-theme="dark">
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-logo-container"> <i class="fas fa-chalkboard-teacher loading-logo-icon"></i> <span class="loading-logo-text">EduSparK</span> </div>
+        <div class="loading-dots"> <span></span><span></span><span></span> </div>
+        <p class="loading-message" id="loadingMessage">Loading Subject Content...</p>
+    </div>
+
+    <header class="header">
+        <div class="logo-container"> <a href="batches.html" class="logo"> <i class="fas fa-chalkboard-teacher"></i> <span class="logo-text">EduSparK</span> </a> </div>
+        <div class="header-actions">
+            <div class="user-avatar" id="userAvatar"> <span id="avatarInitials">U</span> </div>
+        </div>
+    </header>
+    
+    <div id="subjectDetailPageContent" class="page-content active">
+        <div class="container">
+            <div id="subjectDetailHero" class="subject-detail-hero skeleton">
+                 <a href="batches.html" class="page-back-button-hero" id="backToBatchDetailBtn" aria-label="Back to Batch"><i class="fas fa-arrow-left"></i></a>
+                <div class="subject-detail-cover-container" id="subjectDetailCoverContainer">
+                    <!-- Image or Icon loaded by JS -->
+                </div>
+                <div class="subject-detail-info">
+                    <a href="#" class="subject-detail-batch-link" id="subjectDetailBatchLink"><i class="fas fa-layer-group"></i> <span></span></a>
+                    <h1 class="subject-detail-name" id="subjectDetailName"></h1>
+                    <p class="subject-detail-description" id="subjectDetailDescription"></p>
+                </div>
+            </div>
+            
+            <h2 class="section-title" id="contentSectionTitle" style="display:none;">Lectures & Notes</h2>
+            <ul class="content-list" id="contentList">
+                <!-- Content items (lectures/notes) loaded here -->
+            </ul>
+            <div class="empty-state" id="emptyStateContent" style="display:none;"> <i class="fas fa-box-open"></i> <h3>No Content Yet</h3> <p>Lectures and notes for this subject will appear here soon.</p> </div>
+        </div>
+    </div>
+
+   
+    <div id="toastContainer"></div>
+    
+    <div class="video-player-modal" id="videoPlayerModal">
+        <div class="video-player-content">
+            <button class="video-player-close" id="closeVideoPlayerModal" aria-label="Close video player">&times;</button>
+            <div class="video-iframe-container" id="videoIframeContainer">
+                <!-- Iframe will be injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 600, easing: 'ease-out-cubic', once: true, offset: 50 });
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBNi6BHTKNd62VAY7q1oHQmxjZ3r0MUA9U",
+            authDomain: "eduspark-new.firebaseapp.com",
+            projectId: "eduspark-new",
+            storageBucket: "eduspark-new.appspot.com",
+            messagingSenderId: "564501033350",
+            appId: "1:564501033350:web:70c0f96e9bd74fc07",
+            measurementId: "G-NM2SE3DE7J"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const appCheck = firebase.appCheck();
+        try { appCheck.activate('6LdDiuMpAAAAAGoO-_P1cO55PpTRwxQw5QRI90e1', true); } 
+        catch (error) { console.error("Error initializing Firebase App Check:", error); }
+
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => document.querySelectorAll(s);
+
+        function escapeHTML(str) { if (str === null || str === undefined) return ''; return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+        function showToast(message, type = "info", duration = 3500) { const toastId='toast-'+Date.now();const t=document.createElement('div');t.className=`toast ${type}`;t.id=toastId;let i='fas fa-info-circle';type==='success'&&(i='fas fa-check-circle');type==='error'&&(i='fas fa-times-circle');t.innerHTML=`<i class="${i}"></i><span>${escapeHTML(message)}</span><button class="toast-close" aria-label="Close toast">&times;</button>`;$('#toastContainer').appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));t.querySelector('.toast-close').onclick=()=>{t.classList.remove('show');setTimeout(()=>{t.parentElement&&t.remove()},500)};setTimeout(()=>{const ct=document.getElementById(toastId);if(ct){ct.classList.remove('show');setTimeout(()=>{ct.parentElement&&ct.remove()},500)}},duration);}
+        function getInitials(name) { if(!name || typeof name !=='string')return 'U';const p=name.trim().split(' ').filter(s=>s.length>0);if(p.length===0)return 'U';if(p.length===1)return p[0].charAt(0).toUpperCase();return(p[0].charAt(0)+p[p.length-1].charAt(0)).toUpperCase(); }
+
+
+        const elements = {
+            loadingOverlay: $('#loadingOverlay'), loadingMessage: $('#loadingMessage'),
+            userAvatar: $('#userAvatar'), avatarInitials: $('#avatarInitials'),
+            subjectDetailHero: $('#subjectDetailHero'),
+            subjectDetailCoverContainer: $('#subjectDetailCoverContainer'),
+            subjectDetailBatchLink: $('#subjectDetailBatchLink'),
+            subjectDetailName: $('#subjectDetailName'),
+            subjectDetailDescription: $('#subjectDetailDescription'),
+            contentList: $('#contentList'),
+            emptyStateContent: $('#emptyStateContent'),
+            contentSectionTitle: $('#contentSectionTitle'),
+            backToBatchDetailBtn: $('#backToBatchDetailBtn'),
+            videoPlayerModal: $('#videoPlayerModal'),
+            videoIframeContainer: $('#videoIframeContainer'),
+            closeVideoPlayerModal: $('#closeVideoPlayerModal'),
+        };
+        
+        let currentUser = null;
+        let userData = null;
+        let currentBatchId = null;
+        let currentSubjectId = null;
+        let currentSubjectData = null; // To store current subject details
+        let isUserEnrolledInCurrentBatch = false;
+
+        function renderSkeletonSubjectHero() {
+            elements.subjectDetailHero.classList.add('skeleton');
+        }
+        function removeSkeletonSubjectHero() {
+            elements.subjectDetailHero.classList.remove('skeleton');
+        }
+        function renderSkeletonContent(count = 3) {
+            let skeletons = '';
+            for (let i = 0; i < count; i++) {
+                // Use the new lecture item skeleton structure
+                skeletons += `
+                    <li class="content-item skeleton-content-item lecture-item-skeleton" data-aos="fade-up">
+                        <div class="thumbnail-placeholder"></div>
+                        <div class="details-placeholder">
+                            <div class="content-item-title"></div>
+                            <div class="meta-placeholder"></div>
+                            <div class="content-item-description"></div>
+                            <div class="action-buttons-placeholder">
+                                <span class="content-action-btn"></span>
+                                <span class="content-action-btn"></span>
+                            </div>
+                        </div>
+                    </li>`;
+            }
+            elements.contentList.innerHTML = skeletons;
+            AOS.refresh();
+        }
+
+        function getYouTubeEmbedUrl(url) {
+            if (!url) return null;
+            let videoId = null;
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(youtubeRegex);
+            if (match && match[1]) {
+                videoId = match[1];
+                return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+            }
+            return null; 
+        }
+
+        function getVimeoEmbedUrl(url) {
+            if (!url) return null;
+            const vimeoRegex = /(?:https?:\/\/)?(?:www\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/;
+            const match = url.match(vimeoRegex);
+            if (match && match[1]) {
+                return `https://player.vimeo.com/video/${match[1]}?autoplay=1`;
+            }
+            return null; 
+        }
+
+
+        function openVideoPlayer(videoUrl) {
+            let embedUrl = getYouTubeEmbedUrl(videoUrl);
+            if (!embedUrl) embedUrl = getVimeoEmbedUrl(videoUrl);
+
+            if (embedUrl) {
+                elements.videoIframeContainer.innerHTML = `<iframe src="${escapeHTML(embedUrl)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                elements.videoPlayerModal.classList.add('active');
+            } else {
+                showToast("Unsupported video URL.", "warning");
+                window.open(videoUrl, '_blank');
+            }
+        }
+        elements.closeVideoPlayerModal.onclick = () => {
+            elements.videoIframeContainer.innerHTML = ''; 
+            elements.videoPlayerModal.classList.remove('active');
+        };
+         elements.videoPlayerModal.addEventListener('click', (e) => {
+            if (e.target === elements.videoPlayerModal) { 
+                elements.closeVideoPlayerModal.click();
+            }
+        });
+
+
+        async function loadSubjectAndContentDetails(batchId, subjectId) {
+            renderSkeletonSubjectHero();
+            renderSkeletonContent();
+            elements.contentSectionTitle.style.display = 'none';
+
+            try {
+                const subjectDoc = await db.collection('subjects').doc(subjectId).get();
+                if (!subjectDoc.exists || subjectDoc.data().batchId !== batchId) { 
+                    showToast("Subject not found or invalid access.", "error");
+                    elements.loadingMessage.textContent = "Subject not found.";
+                     $('#subjectDetailPageContent').innerHTML = '<div class="empty-state" style="display:flex;"><i class="fas fa-search-minus"></i><h3>Subject Not Found</h3><p>This subject does not exist or is not part of the specified batch.</p><a href="batches.html" class="content-action-btn" style="margin-top:20px;">Go to All Batches</a></div>';
+                     elements.loadingOverlay.classList.remove('hidden'); // Ensure overlay doesn't hide this message
+                    return;
+                }
+                const subjectDataFromDb = { id: subjectDoc.id, ...subjectDoc.data() };
+                currentSubjectId = subjectId;
+                currentSubjectData = subjectDataFromDb; // Store globally
+
+                const batchDoc = await db.collection('batches').doc(batchId).get();
+                const batchData = batchDoc.exists ? { id: batchDoc.id, ...batchDoc.data() } : { name: "Unknown Batch"};
+                currentBatchId = batchId;
+
+
+                document.title = `EduSparK - ${escapeHTML(currentSubjectData.name)}`;
+                if (currentSubjectData.coverImageUrl) {
+                    elements.subjectDetailCoverContainer.innerHTML = `<img src="https://i.postimg.cc/Jhk9CHvw/Picsart-25-02-28-22-52-30-635.jpg" alt="${escapeHTML(currentSubjectData.name)}" class="subject-detail-cover">`;
+                } else if (currentSubjectData.iconClass) {
+                    elements.subjectDetailCoverContainer.innerHTML = `<div class="icon-placeholder"><i class="${escapeHTML(currentSubjectData.iconClass)}"></i></div>`;
+                } else {
+                    elements.subjectDetailCoverContainer.innerHTML = `<div class="icon-placeholder">${getInitials(currentSubjectData.name)}</div>`;
+                }
+
+                elements.subjectDetailBatchLink.href = `batch-detail.html?batchId=${batchId}`;
+                elements.subjectDetailBatchLink.querySelector('span').textContent = batchData.name;
+                elements.backToBatchDetailBtn.href = `batch-detail.html?batchId=${batchId}`;
+
+
+                elements.subjectDetailName.textContent = currentSubjectData.name;
+                elements.subjectDetailDescription.innerHTML = currentSubjectData.description ? escapeHTML(currentSubjectData.description).replace(/\n/g, '<br>') : 'No detailed description for this subject.';
+                
+                removeSkeletonSubjectHero();
+                await loadContentForSubject(batchId, subjectId, batchData); // Pass batchData
+
+            } catch (error) {
+                console.error("Error loading subject details:", error);
+                showToast("Could not load subject details.", "error");
+                removeSkeletonSubjectHero();
+                elements.contentList.innerHTML = '';
+            }
+        }
+
+        async function loadContentForSubject(batchId, subjectId, batchData) { // Added batchData
+            elements.contentList.innerHTML = ''; 
+            const batchInstructorName = batchData?.instructorName || "Instructor";
+
+            try {
+                const lecturesSnapshot = await db.collection('lectures')
+                    .where('batchId', '==', batchId)
+                    .where('subjectId', '==', subjectId)
+                    .orderBy('order', 'asc')
+                    .get();
+
+                if (lecturesSnapshot.empty) {
+                    elements.emptyStateContent.style.display = 'flex';
+                    elements.contentSectionTitle.style.display = 'none';
+                    return;
+                }
+                elements.emptyStateContent.style.display = 'none';
+                elements.contentSectionTitle.style.display = 'block';
+
+                lecturesSnapshot.forEach(doc => {
+                    const content = { id: doc.id, ...doc.data() };
+                    const li = document.createElement('li');
+                    li.className = 'content-item';
+                    li.setAttribute('data-aos', 'fade-up');
+                    
+                    const canAccess = isUserEnrolledInCurrentBatch || content.isFreePreview;
+
+                    if (content.type === 'lecture') {
+                        li.classList.add('lecture-item');
+                        let thumbnailUrl = content.thumbnailUrl; // Prefer specific lecture thumbnail
+                        if (!thumbnailUrl) { // Fallback logic
+                            if (currentSubjectData && currentSubjectData.coverImageUrl) {
+                                thumbnailUrl = currentSubjectData.coverImageUrl;
+                            } else if (currentSubjectData && currentSubjectData.iconClass) {
+                                thumbnailUrl = 'icon'; // Special flag for icon
+                            } else {
+                                thumbnailUrl = `https://via.placeholder.com/100x70?text=${getInitials(content.title)}`;
+                            }
+                        }
+
+                        li.innerHTML = `
+                            <div class="content-item-thumbnail-container">
+                                ${thumbnailUrl === 'icon' ? `<i class="${escapeHTML(currentSubjectData.iconClass)} icon-placeholder-thumb"></i>` : `<img src="${escapeHTML(thumbnailUrl)}" alt="${escapeHTML(content.title)}" class="content-item-thumbnail">`}
+                            </div>
+                            <div class="content-item-details">
+                                <h3 class="content-item-title">${escapeHTML(content.title)}</h3>
+                                <div class="content-item-meta">
+                                    ${content.durationMinutes ? `<span><i class="far fa-clock"></i> ${content.durationMinutes} min</span>` : ''}
+                                    <span><i class="fas fa-chalkboard-teacher"></i> ${escapeHTML(batchInstructorName)}</span>
+                                    ${content.isFreePreview ? '<span class="free-preview-badge">FREE</span>' : ''}
+                                </div>
+                                ${content.description ? `<p class="content-item-description">${escapeHTML(content.description)}</p>` : ''}
+                                <div class="content-item-actions">
+                                    <button class="content-action-btn watch-lecture-btn ${canAccess ? '' : 'locked'}"
+                                            data-url="${escapeHTML(content.videoUrl)}"
+                                            ${canAccess ? '' : 'disabled title="Enroll in batch to access"'}">
+                                        <i class="fas ${canAccess ? 'fa-play-circle' : 'fa-lock'}"></i>
+                                        ${canAccess ? 'Watch Lecture' : 'Locked'}
+                                    </button>
+                                    ${content.notesPdfUrl ? `
+                                        <button class="content-action-btn view-notes-btn ${canAccess ? '' : 'locked'}"
+                                                data-url="${escapeHTML(content.notesPdfUrl)}"
+                                                ${canAccess ? '' : 'disabled title="Enroll in batch to access"'}">
+                                            <i class="fas ${canAccess ? 'fa-file-pdf' : 'fa-lock'}"></i>
+                                            ${canAccess ? 'View Notes' : 'Locked Notes'}
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                        if (canAccess) {
+                            li.querySelector('.watch-lecture-btn')?.addEventListener('click', (e) => {
+                                const url = e.currentTarget.dataset.url;
+                                if (url) openVideoPlayer(url);
+                                else showToast("Video URL is missing.", "warning");
+                            });
+                            li.querySelector('.view-notes-btn')?.addEventListener('click', (e) => {
+                                const url = e.currentTarget.dataset.url;
+                                if (url) window.open(url, '_blank');
+                                else showToast("Notes URL is missing.", "warning");
+                            });
+                        }
+
+                    } else if (content.type === 'notes') { // Standalone notes
+                        li.classList.add('notes-item');
+                        li.innerHTML = `
+                            <div class="content-item-header">
+                                <i class="fas fa-file-alt content-item-type-icon"></i>
+                                <h3 class="content-item-title">${escapeHTML(content.title)}</h3>
+                                <div class="content-item-meta">
+                                    ${content.isFreePreview ? '<span class="free-preview-badge">FREE</span>' : ''}
+                                </div>
+                            </div>
+                            ${content.description ? `<p class="content-item-description">${escapeHTML(content.description)}</p>` : ''}
+                            <div class="content-item-actions">
+                                <button class="content-action-btn view-pdf-btn ${canAccess ? '' : 'locked'}"
+                                        data-url="${escapeHTML(content.pdfUrl)}"
+                                        ${canAccess ? '' : 'disabled title="Enroll in batch to access"'}>
+                                    <i class="fas ${canAccess ? 'fa-file-pdf' : 'fa-lock'}"></i>
+                                    ${canAccess ? 'View PDF' : 'Locked'}
+                                </button>
+                            </div>
+                        `;
+                        if (canAccess) {
+                            li.querySelector('.view-pdf-btn').addEventListener('click', (e) => {
+                                const url = e.currentTarget.dataset.url;
+                                if (url) window.open(url, '_blank');
+                                else showToast("PDF URL is missing.", "warning");
+                            });
+                        }
+                    }
+                    elements.contentList.appendChild(li);
+                });
+                AOS.refreshHard();
+
+            } catch (error) {
+                console.error("Error loading content:", error);
+                showToast("Could not load lectures/notes.", "error");
+                elements.emptyStateContent.style.display = 'flex';
+                elements.contentSectionTitle.style.display = 'none';
+            }
+        }
+        
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    userData = { id: userDoc.id, ...userDoc.data() };
+                     // Enrollment check will be done after currentBatchId is set
+                     if (userData.profilePictureURL) elements.userAvatar.innerHTML = `<img src="${escapeHTML(userData.profilePictureURL)}" alt="User Avatar">`;
+                    else elements.userAvatar.innerHTML = `<span id="avatarInitials">${getInitials(userData.name)}</span>`;
+                } else {
+                    elements.userAvatar.innerHTML = `<span id="avatarInitials">${getInitials(user.displayName)}</span>`;
+                }
+            } else {
+                userData = null;
+                isUserEnrolledInCurrentBatch = false;
+                elements.userAvatar.innerHTML = `<span id="avatarInitials">U</span>`;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const batchIdFromUrl = urlParams.get('batchId');
+            const subjectIdFromUrl = urlParams.get('subjectId');
+            
+            if (batchIdFromUrl) { // Set currentBatchId early for enrollment check
+                currentBatchId = batchIdFromUrl;
+                if(userData) isUserEnrolledInCurrentBatch = userData.enrolledBatches?.includes(currentBatchId) || false;
+            }
+
+
+            if (batchIdFromUrl && subjectIdFromUrl) {
+                await loadSubjectAndContentDetails(batchIdFromUrl, subjectIdFromUrl);
+            } else {
+                showToast("Batch or Subject ID missing.", "error");
+                elements.loadingMessage.textContent = "Required information missing from URL.";
+                 $('#subjectDetailPageContent').innerHTML = '<div class="empty-state" style="display:flex;"><i class="fas fa-exclamation-triangle"></i><h3>Missing Information</h3><p>Batch or Subject ID not provided. Please navigate from a batch page.</p><a href="batches.html" class="content-action-btn" style="margin-top:20px;">Go to All Batches</a></div>';
+
+            }
+            elements.loadingOverlay.classList.add('hidden');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+             // Auth listener will handle the main loading logic
+        });
+    </script>
+</body>
+</html>
